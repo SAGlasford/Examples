@@ -86,8 +86,7 @@ dummy.char.list.df.tbl$ID <- 1:nrow(dummy.char.list.df.tbl)
 return(dummy.char.list.df.tbl)
 }
 
-Table.Data.Type.Final1 <- function(aa = Table.Data.Type.ID(),
-                                  bb = Table.Data.Type.Map()){
+Table.Data.Type.Final1 <- function(aa = Table.Data.Type.ID(),bb = Table.Data.Type.Map()){
   bb$ID.List <- 1:nrow(bb)
   ee         <- merge(aa,bb) 
   return(ee)}
