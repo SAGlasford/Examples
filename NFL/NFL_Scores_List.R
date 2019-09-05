@@ -1,5 +1,6 @@
 
 library(lubridate)
+library(stringr)
 
 source("C:/Users/scotg/OneDrive/Documents/GitHub/Examples/NFL/fx_listMassage.R")
 
@@ -110,14 +111,41 @@ NFL.Scores <- NFL.Scores[,c('Home_Team',
                             'Lead_Rush_Yards')]
 
 NFL.Scores$Month   <- month(mdy(NFL.Scores$Date))
-NFL.Scores$Year    <- year(mdy(NFL.Scores$Date))
+NFL.Scores$Year   <- year(mdy(NFL.Scores$Date))
 NFL.Scores$Weekday <- weekdays(mdy(NFL.Scores$Date))
+NFL.Scores$Date.No <- mdy(NFL.Scores$Date) %>% as.numeric()
+NFL.Scores$Home.Team.Net.Points <- as.numeric(NFL.Scores$Home_Team_Score) - as.numeric(NFL.Scores$Away_Team_Score)
+NFL.Scores$Away.Team.Net.Points <- -NFL.Scores$Home.Team.Net.Points
 
-date.store <- list()
-for(yy in unique(NFL.Scores$Year)){
-  
-  assign() 
-  
-  
-  
+SeasonList <- list()
+for(jjj in 1:length(years.to.study)){
+  dummy.name <- paste0("Season_",jjj)
+  dummy.date.1 <- mdy("06-01-2018")
+  year(dummy.date.1) <- years.to.study[jjj] %>% as.numeric()
+  dummy.date.2 <- mdy("05-31-2019")
+  year(dummy.date.2) <- years.to.study[jjj] %>% as.numeric() +1
+  dummy.df <- NFL.Scores[mdy(NFL.Scores$Date) >= dummy.date.1 & mdy(NFL.Scores$Date) <= dummy.date.2,]
+  dummy.df$Season <- years.to.study[jjj]
+  SeasonList[[jjj]] <- dummy.df
 }
+NFL1 <- bind_rows(SeasonList)
+NFL1 <- NFL1[order(NFL1$Date),]
+season.min.dates <-  NFL1 %>% group_by(Season) %>% summarise(OpenDay = max(Date))
+
+NFL1 <- merge(NFL1,season.min.dates,by = "Season",all.x = TRUE)
+NFL1$Day.Diff <- mdy(NFL1$Date) - mdy(NFL1$OpenDay) 
+add.func.dates <-  NFL1 %>% group_by(Season) %>% summarise(OpenDay = min(Day.Diff))
+NFL1 <- merge(NFL1,add.func.dates,by = "Season",all.x = TRUE)
+NFL1$Day.Diff.1 <- NFL1$Day.Diff - NFL1$OpenDay.y
+NFL1$Day.Diff.1 <- NFL1$Day.Diff.1 %>% as.integer()
+NFL1$Week <-    floor(NFL1$Day.Diff.1/7) +1
+
+GamesPlayed.Week <- NFL1 %>% group_by(Season,Week) %>% summarise(NoOfGames = n())
+GamesPlayed.Year <- NFL1 %>% group_by(Season) %>% summarise(NoOfGames = n())
+
+
+
+head()
+
+
+
